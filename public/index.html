@@ -411,9 +411,9 @@
             <div class="slider-group">
                 <label for="duration">Display Duration</label>
                 <div class="slider-container">
-                    <input type="range" id="duration" name="duration" min="5" max="30" value="10" 
+                    <input type="range" id="duration" name="duration" min="5" max="30" value="6" 
                            aria-describedby="duration-value" aria-label="Display duration in seconds">
-                    <div id="duration-value" class="slider-value">10s</div>
+                    <div id="duration-value" class="slider-value">6s</div>
                 </div>
             </div>
 
@@ -479,6 +479,8 @@
         // Duration slider update
         const durationSlider = document.getElementById('duration');
         const durationValue = document.getElementById('duration-value');
+        // Set initial display to match default slider value
+        durationValue.textContent = durationSlider.value + 's';
         
         durationSlider.addEventListener('input', function() {
             durationValue.textContent = this.value + 's';
@@ -576,7 +578,7 @@
                     showSuccess('Photo uploaded successfully! It will appear on the slideshow soon.');
                     form.reset();
                     fileInfo.style.display = 'none';
-                    durationValue.textContent = '10s';
+                    durationValue.textContent = durationSlider.value + 's';
                     rotationHours.classList.add('hidden');
                 } else {
                     showError('form-error', result.error || 'Upload failed. Please try again.');

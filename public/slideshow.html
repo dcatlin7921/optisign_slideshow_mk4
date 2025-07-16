@@ -289,10 +289,7 @@
                 
                 this.setupControls();
                 this.loadSlides();
-                                // Removed periodic auto-refresh; playlist now reloads only after completing a full cycle
-                    // This prevents "once" slides being filtered out before they are actually shown.
-                    // this.refreshInterval = 10000;
-                    // setInterval(() => this.loadSlides(), this.refreshInterval);
+                
             }
 
             async loadSlides() {

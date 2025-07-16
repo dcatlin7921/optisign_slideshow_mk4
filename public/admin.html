@@ -536,30 +536,42 @@
     </div>
 
     <script>
-        // Admin credentials (in production, this should be handled server-side)
-        const ADMIN_CREDENTIALS = {
-            username: 'dave62530@gmail.com',
-            password: 'Noaheliamelia1!2@'
+        // Inject Authorization header in every request if token present
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+            const token = sessionStorage.getItem('adminToken');
+            init.headers = { ...(init && init.headers ? init.headers : {}), ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+            return originalFetch(input, init);
         };
 
         // Check if already logged in
-        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+        if (sessionStorage.getItem('adminToken')) {
             showAdminPanel();
         }
 
         // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                sessionStorage.setItem('adminLoggedIn', 'true');
-                showAdminPanel();
-                refreshStats();
-            } else {
-                showError('Invalid username or password');
+            try {
+                const res = await originalFetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    sessionStorage.setItem('adminToken', data.token);
+                    showAdminPanel();
+                    refreshStats();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showError(err.error || 'Login failed');
+                }
+            } catch (err) {
+                console.error('Login network error', err);
+                showError('Network error');
             }
         });
 
@@ -699,12 +711,12 @@
         }
 
         function logout() {
-            sessionStorage.removeItem('adminLoggedIn');
-            document.getElementById('loginContainer').style.display = 'block';
-            document.getElementById('adminContainer').style.display = 'none';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        }
+             sessionStorage.removeItem('adminToken');
+             document.getElementById('loginContainer').style.display = 'block';
+             document.getElementById('adminContainer').style.display = 'none';
+             document.getElementById('username').value = '';
+             document.getElementById('password').value = '';
+         }
 
         function showError(message) {
             const errorDiv = document.getElementById('loginError');

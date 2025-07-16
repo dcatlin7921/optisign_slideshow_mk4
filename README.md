@@ -42,11 +42,15 @@ Built entirely on Cloudflare's edge platform:
 
 ### Required Secrets (set via `wrangler secret put`)
 
-- `UNLISTED_SLUG`: Random 128-bit string protecting slideshow URL
-- `ADMIN_TOKEN`: Password for emergency reset endpoint  
-- `CLOUDFLARE_ACCOUNT_ID`: Your Cloudflare account ID (for Images API)
-- `CLOUDFLARE_API_TOKEN`: API token with Images:Edit permissions
-- `CLOUDFLARE_ACCOUNT_HASH`: Account hash for image delivery URLs
+| Name | Purpose |
+|------|---------|
+| `UNLISTED_SLUG` | Random slug protecting private slideshow URL |
+| `ADMIN_USERNAME` | Admin panel login username |
+| `ADMIN_PASSWORD` | Admin panel login password |
+| `ADMIN_TOKEN` | Bearer token issued to client after successful login; must match `ADMIN_TOKEN` in middleware |
+| `CLOUDFLARE_ACCOUNT_ID` | Your Cloudflare account ID (for Images API) |
+| `CLOUDFLARE_API_TOKEN` | API token with Images:Edit permissions |
+| `CLOUDFLARE_ACCOUNT_HASH` | Account hash for image delivery URLs |
 
 ### Environment Variables (in `wrangler.toml`)
 
@@ -124,6 +128,21 @@ Upload images to the `public/default/` directory or directly to the R2 bucket un
 - `POST /upload` → Process photo uploads
 - `GET /slideshow/{slug}` → Slideshow player (privacy-gated)
 - `GET /queue.json` → Current slideshow playlist (no cache)
+
+### Admin Authentication
+
+1. **Login**  
+   `POST /admin/login` with JSON `{ "username": "...", "password": "..." }`  
+   • On success returns `{ "token": "<bearer>" }` which the frontend stores in `sessionStorage`.  
+   • All subsequent requests to `/admin/*` must include header `Authorization: Bearer <token>`.
+
+2. **Protection Middleware**  
+   The `/functions/admin/_middleware.js` file blocks every `/admin/*` route unless the bearer token matches `ADMIN_TOKEN` (set as a secret).
+
+3. **Rotation of Credentials**  
+   Rotate `ADMIN_PASSWORD` / `ADMIN_TOKEN` via `wrangler secret put` without redeploying static assets.
+
+---
 
 ### Admin Endpoints  
 

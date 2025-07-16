@@ -1,0 +1,14 @@
+# Node modules and caches
+node_modules/
+node_modules/.cache/
+
+# Cloudflare Wrangler state
+.wrangler/state/
+
+# Other common ignores
+.DS_Store
+.env
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -8,6 +8,8 @@ pages_build_output_dir = "public"
 [vars]
 QUEUE_CAP = "20"
 UA_CHECK_ENABLED = "false"
+# (Optional) default rotation limit, etc.
+
 
 # Pages Functions bindings
 [[r2_buckets]]
@@ -27,9 +29,13 @@ preview_id = "a096b3824ccc4684a5647e530e0208dc"
 # Note: Scheduled triggers and Images API bindings are not supported in Pages Functions
 # These features will need to be implemented differently or moved to a separate Worker
 
-# Secrets (set via wrangler pages secret put)
-# UNLISTED_SLUG: a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3f4g5h6i7j8
-# ADMIN_TOKEN - password for reset endpoint (choose a secure password)
+# Secrets (set via `wrangler secret put`)
+# UNLISTED_SLUG              - random slug protecting slideshow URL
+# ADMIN_USERNAME             - admin login username (e.g. you@example.com)
+# ADMIN_PASSWORD             - strong admin login password
+# ADMIN_TOKEN                - bearer token issued to client after login (can be same as password or a separate random string)
+
+
 # CLOUDFLARE_ACCOUNT_ID: b6769d00043f804fb28cb0f092ca8d92
 # CLOUDFLARE_API_TOKEN - API token with appropriate permissions
 # CLOUDFLARE_ACCOUNT_HASH - for image delivery (if using Images API)
