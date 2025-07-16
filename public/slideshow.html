@@ -57,24 +57,28 @@
         }
 
         .slide-info {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            padding: 20px 40px;
-            border-radius: 16px;
-            text-align: center;
-            max-width: 80%;
-        }
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(10px);
+    padding: 10px 24px;
+    border-radius: 14px;
+    text-align: center;
+    max-width: 60%;
+    min-width: 180px;
+    box-sizing: border-box;
+}
 
         .slide-info h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #fff;
-        }
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    color: #fff;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
 
         .slide-info p {
             font-size: 1.2rem;
@@ -442,26 +446,149 @@
                 if (slide.type === 'guest') {
                     const slideInfo = document.createElement('div');
                     slideInfo.className = 'slide-info';
-                    
-                    const title = document.createElement('h2');
-                    title.textContent = `Photo by ${slide.name}`;
-                    slideInfo.appendChild(title);
-                    
-                    if (slide.type === 'guest') {
-                        const subtitle = document.createElement('p');
-                        subtitle.textContent = slide.once
-                            ? 'Showing once'
-                            : (slide.rotationHours === null || slide.rotationHours === -1
-                                ? 'In rotation forever'
-                                : `In rotation for ${slide.rotationHours}h`);
-                        slideInfo.appendChild(subtitle);
-                    }
-                    
-                    slideElement.appendChild(slideInfo);
                 }
+            });
+        }
+
+        showSlideshow() {
+            this.loadingDiv.style.display = 'none';
+            this.errorDiv.style.display = 'none';
+            this.container.style.display = 'block';
+        }
+
+        hideLoading() {
+            this.loadingDiv.style.display = 'none';
+        }
+
+        showError() {
+            this.loadingDiv.style.display = 'none';
+            this.container.style.display = 'none';
+            this.errorDiv.style.display = 'flex';
+        }
+
+        hideError() {
+            this.errorDiv.style.display = 'none';
+        }
+
+        updateStatus(message) {
+            this.statusText.textContent = message;
+            this.screenReaderStatus.textContent = message;
+        }
+
+        async displaySlide(index) {
+            if (!this.slides || this.slides.length === 0) return;
+            
+            this.currentSlideIndex = index;
+            const slide = this.slides[index];
+            
+            // Clear existing slides
+            const existingSlides = this.container.querySelectorAll('.slide');
+            existingSlides.forEach(s => s.remove());
+            
+            // Create new slide element
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide active';
+            slideElement.setAttribute('aria-live', 'polite');
+            
+            // Create image
+            const img = document.createElement('img');
+            img.src = slide.url;
+            img.alt = `Photo by ${slide.name}`;
+            img.loading = 'eager';
+            
+            // Handle image load errors
+            img.onerror = () => {
+                console.error('Failed to load image:', slide.url);
+                // Wait a short grace period then advance to next slide to avoid rapid cycling
+                const fallbackDuration = 1000; // 1 s
+                this.clearTimers();
+                this.startProgress(fallbackDuration);
+                this.scheduleNextSlide(fallbackDuration);
+            };
+            
+            slideElement.appendChild(img);
+            
+            // Create slide info (guest images only)
+            if (slide.type === 'guest') {
+                const slideInfo = document.createElement('div');
+                slideInfo.className = 'slide-info';
+                slideInfo.style.padding = '0.5em 1em'; // Adjusted padding
                 
-                this.container.appendChild(slideElement);
+                const title = document.createElement('h2');
+                title.style.fontSize = '1.2em'; // Reduced font size
+                title.textContent = `Photo by ${slide.name}`;
+                slideInfo.appendChild(title);
                 
+                slideElement.appendChild(slideInfo);
+            }
+            
+            this.container.appendChild(slideElement);
+            
+            // Update status and screen reader
+            const slideInfo = `Slide ${index + 1} of ${this.slides.length}: Photo by ${slide.name}`;
+            this.updateStatus(slideInfo);
+            
+            // Set up progress bar and timer
+            const duration = (slide.durationSec || 10) * 1000;
+            this.startProgress(duration);
+            
+            if (this.isPlaying) {
+                this.scheduleNextSlide(duration);
+            }
+        }
+
+        startProgress(duration) {
+            // Reset progress bar
+            this.progressBar.style.width = '0%';
+            this.progressBar.style.transition = 'none';
+            
+            // Force reflow
+            this.progressBar.offsetHeight;
+            
+            // Animate progress
+            this.progressBar.style.transition = `width ${duration}ms linear`;
+            this.progressBar.style.width = '100%';
+        }
+
+        scheduleNextSlide(duration) {
+            this.clearTimers();
+            
+            this.currentTimer = setTimeout(() => {
+                this.nextSlide();
+            }, duration);
+        }
+
+        nextSlide() {
+            if (!this.slides || this.slides.length === 0) return;
+            
+            const nextIndex = (this.currentSlideIndex + 1) % this.slides.length;
+            
+            // If we've completed a full cycle, reload the playlist
+            if (nextIndex === 0) {
+                this.loadSlides().then(() => {
+                    this.displaySlide(0);
+                });
+            } else {
+                this.displaySlide(nextIndex);
+            }
+        }
+
+        previousSlide() {
+            if (!this.slides || this.slides.length === 0) return;
+            
+            const prevIndex = this.currentSlideIndex === 0 
+                ? this.slides.length - 1 
+                : this.currentSlideIndex - 1;
+            this.displaySlide(prevIndex);
+        }
+
+        togglePlayPause() {
+            this.isPlaying = !this.isPlaying;
+            const playPauseBtn = document.getElementById('play-pause');
+            
+            if (this.isPlaying) {
+                playPauseBtn.textContent = '⏸️';
+                playPauseBtn.setAttribute('aria-label', 'Pause slideshow');
                 // Update status and screen reader
                 const slideInfo = `Slide ${index + 1} of ${this.slides.length}: Photo by ${slide.name}`;
                 this.updateStatus(slideInfo);

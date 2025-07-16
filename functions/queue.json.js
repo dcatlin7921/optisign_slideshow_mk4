@@ -58,7 +58,14 @@ export async function onRequestGet(context) {
     // Add default images if queue has space
     const queueCap = parseInt(env.QUEUE_CAP) || 20;
     if (queueCap === 0 || playlist.length < queueCap) {
-      const defaultImages = await getDefaultImages(env);
+      let defaultImages = await getDefaultImages(env);
+      // Shuffle default images
+      for (let i = defaultImages.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [defaultImages[i], defaultImages[j]] = [defaultImages[j], defaultImages[i]];
+      }
+      // Limit to 20
+      defaultImages = defaultImages.slice(0, 20);
       playlist.push(...defaultImages);
     }
     
