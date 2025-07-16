@@ -1,0 +1,15 @@
+# Default Images Directory
+
+Place your default slideshow images in this directory.
+Supported formats: .jpg, .jpeg, .png, .gif, .webp, .bmp
+
+Images should be optimized for display:
+- Recommended resolution: 1920x1080 or higher
+- File size: Keep under 5MB for optimal loading
+- Aspect ratio: 16:9 works best for most displays
+
+Example files you might add:
+- welcome.jpg (Welcome message)
+- menu.png (Current menu or specials)
+- events.jpg (Upcoming events)
+- ambiance.jpg (Venue atmosphere shots)

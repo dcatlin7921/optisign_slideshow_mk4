@@ -1,0 +1,37 @@
+{
+  "name": "optisign-photo-slideshow",
+  "version": "1.0.0",
+  "description": "Interactive Private Photo-Slideshow for OptiSign digital displays",
+  "main": "functions/_worker.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "pages:deploy": "wrangler pages publish public/",
+    "setup": "npm run setup:r2 && npm run setup:kv",
+    "setup:r2": "wrangler r2 bucket create optisign-photos",
+    "setup:kv": "wrangler kv:namespace create \"PHOTO_QUEUE\"",
+    "logs": "wrangler tail",
+    "test": "echo 'Run wrangler dev to test locally'",
+    "purge": "wrangler kv:key delete --namespace-id=$KV_ID queue"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "slideshow",
+    "photo-upload",
+    "edge-computing",
+    "optisign"
+  ],
+  "author": "OptiSign Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/optisign/photo-slideshow.git"
+  }
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Test</title>
+</head>
+<body>
+    <h1>Queue Endpoint Test</h1>
+    <div id="result"></div>
+    <button onclick="testQueue()">Test Queue</button>
+
+    <script>
+        async function testQueue() {
+            const resultDiv = document.getElementById('result');
+            try {
+                console.log('Testing queue endpoint...');
+                const response = await fetch('/queue.json', {
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
+                
+                console.log('Response:', response);
+                console.log('Status:', response.status);
+                console.log('Headers:', [...response.headers.entries()]);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data:', data);
+                
+                resultDiv.innerHTML = `
+                    <h2>Success!</h2>
+                    <p>Status: ${response.status}</p>
+                    <p>Data length: ${data.length}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <h2>Error!</h2>
+                    <p>${error.message}</p>
+                    <p>Check console for details</p>
+                `;
+            }
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', testQueue);
+    </script>
+</body>
+</html>

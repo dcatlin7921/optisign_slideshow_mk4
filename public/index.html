@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiSign Photo Upload</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        input[type="file"]:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .slider-group {
+            margin-bottom: 24px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 8px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-value {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .checkbox-group {
+            margin-bottom: 16px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #f0f4ff;
+        }
+
+        .checkbox-item.required {
+            border-color: #ff6b6b;
+        }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .checkbox-label {
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #333;
+        }
+
+        .checkbox-label a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .checkbox-label a:hover {
+            text-decoration: underline;
+        }
+
+        .display-mode {
+            margin-bottom: 24px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .radio-item {
+            flex: 1;
+            position: relative;
+        }
+
+        .radio-item input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .radio-item label {
+            display: block;
+            padding: 16px;
+            background: #f8f9fa;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0;
+        }
+
+        .radio-item input[type="radio"]:checked + label {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .rotation-hours {
+            transition: all 0.3s ease;
+        }
+
+        .rotation-hours.hidden {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+        }
+
+        select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            min-height: 56px;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 14px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .file-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 14px;
+            color: #0066cc;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .slider-container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .container {
+                border: 2px solid #000;
+            }
+            
+            input, select {
+                border-color: #000;
+            }
+        }
+
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            .container {
+                animation: none;
+            }
+            
+            * {
+                transition: none !important;
+            }
+        }
+            /* Privacy Policy Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            max-height: 90vh;
+            overflow: auto;
+            width: 100%;
+            max-width: 800px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .policy-text {
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                max-height: 85vh;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Share Your Photo</h1>
+        <p class="subtitle">Upload a photo to see it on the big screen!</p>
+        
+        <div id="success-message" class="success" role="alert"></div>
+        
+        <form id="upload-form" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="photo">Choose Photo</label>
+                <input type="file" id="photo" name="photo" accept="image/*" required aria-describedby="photo-error">
+                <div id="file-info" class="file-info"></div>
+                <div id="photo-error" class="error" role="alert"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Your First Name</label>
+                <input type="text" id="name" name="name" maxlength="30" required 
+                       placeholder="Enter your first name" aria-describedby="name-error">
+                <div id="name-error" class="error" role="alert"></div>
+            </div>
+
+            <div class="slider-group">
+                <label for="duration">Display Duration</label>
+                <div class="slider-container">
+                    <input type="range" id="duration" name="duration" min="5" max="30" value="10" 
+                           aria-describedby="duration-value" aria-label="Display duration in seconds">
+                    <div id="duration-value" class="slider-value">10s</div>
+                </div>
+            </div>
+
+            <div class="display-mode">
+                <label>Display Mode</label>
+                <div class="radio-group">
+                    <div class="radio-item">
+                        <input type="radio" id="once" name="displayMode" value="once" checked>
+                        <label for="once">Show Once</label>
+                    </div>
+                    <div class="radio-item">
+                        <input type="radio" id="rotation" name="displayMode" value="rotation">
+                        <label for="rotation">Keep in Rotation</label>
+                    </div>
+                </div>
+                
+                <div id="rotation-hours" class="rotation-hours hidden">
+                    <label for="hours">Rotation Duration</label>
+                    <select id="hours" name="rotationHours">
+                        <option value="1">1 hour</option>
+                        <option value="2" selected>2 hours</option>
+                        <option value="3">3 hours</option>
+                        <option value="4">4 hours</option>
+                        <option value="6">6 hours</option>
+                        <option value="8">8 hours</option>
+                        <option value="12">12 hours</option>
+                        <option value="24">24 hours</option>
+                        <option value="48">2 days</option>
+                        <option value="168">1 week</option>
+                        <option value="720">1 month</option>
+                        <option value="-1">Forever</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <div class="checkbox-item" id="age-checkbox">
+                    <input type="checkbox" id="age-confirm" name="ageConfirm" required>
+                    <label for="age-confirm" class="checkbox-label">I confirm that I am 18 years or older</label>
+                </div>
+                
+                <div class="checkbox-item" id="display-checkbox">
+                    <input type="checkbox" id="display-consent" name="displayConsent" required>
+                    <label for="display-consent" class="checkbox-label">I consent to my photo being displayed publicly on the slideshow</label>
+                </div>
+                
+                <div class="checkbox-item" id="privacy-checkbox">
+                    <input type="checkbox" id="privacy-accept" name="privacyAccept" required>
+                    <label for="privacy-accept" class="checkbox-label">I accept the <a href="#" id="privacy-link">Privacy Policy</a></label>
+                </div>
+            </div>
+
+            <div id="form-error" class="error" role="alert"></div>
+
+            <button type="submit" class="submit-btn" aria-describedby="form-error">
+                Upload Photo
+            </button>
+        </form>
+    </div>
+
+    <script src="https://unpkg.com/browser-image-compression/dist/browser-image-compression.js"></script>
+    <script>
+        // Duration slider update
+        const durationSlider = document.getElementById('duration');
+        const durationValue = document.getElementById('duration-value');
+        
+        durationSlider.addEventListener('input', function() {
+            durationValue.textContent = this.value + 's';
+            durationValue.setAttribute('aria-live', 'polite');
+        });
+
+        // Display mode toggle
+        const displayModeRadios = document.querySelectorAll('input[name="displayMode"]');
+        const rotationHours = document.getElementById('rotation-hours');
+        
+        displayModeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'rotation') {
+                    rotationHours.classList.remove('hidden');
+                } else {
+                    rotationHours.classList.add('hidden');
+                }
+            });
+        });
+
+        // File input handling
+        const photoInput = document.getElementById('photo');
+        const fileInfo = document.getElementById('file-info');
+        
+        photoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const size = (file.size / (1024 * 1024)).toFixed(2);
+                fileInfo.textContent = `Selected: ${file.name} (${size} MB)`;
+                fileInfo.style.display = 'block';
+                
+                // Clear any previous errors
+                document.getElementById('photo-error').style.display = 'none';
+                
+                // Validate file size
+                if (file.size > 30 * 1024 * 1024) {
+                    showError('photo-error', 'File size must be 30 MB or less');
+                    this.value = '';
+                    fileInfo.style.display = 'none';
+                }
+                
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    showError('photo-error', 'Please select an image file');
+                    this.value = '';
+                    fileInfo.style.display = 'none';
+                }
+            } else {
+                fileInfo.style.display = 'none';
+            }
+        });
+
+        // Form submission
+        const form = document.getElementById('upload-form');
+        const submitBtn = form.querySelector('.submit-btn');
+        
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            clearErrors();
+            
+            // Validate required checkboxes
+            if (!validateCheckboxes()) {
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Uploading...';
+            
+            try {
+                const originalFile = photoInput.files[0];
+                let processedFile = originalFile;
+                if (originalFile) {
+                    const options = { maxSizeMB: 0.7, maxWidthOrHeight: 2160, fileType: 'image/webp', useWebWorker: true };
+                    try {
+                        processedFile = await imageCompression(originalFile, options);
+                    } catch (err) {
+                        console.error('Compression error', err);
+                    }
+                }
+
+                const formData = new FormData(form);
+                formData.set('photo', processedFile, processedFile.name);
+                
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Photo uploaded successfully! It will appear on the slideshow soon.');
+                    form.reset();
+                    fileInfo.style.display = 'none';
+                    durationValue.textContent = '10s';
+                    rotationHours.classList.add('hidden');
+                } else {
+                    showError('form-error', result.error || 'Upload failed. Please try again.');
+                }
+            } catch (error) {
+                showError('form-error', 'Network error. Please check your connection and try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Upload Photo';
+            }
+        });
+
+        function validateCheckboxes() {
+            const requiredCheckboxes = [
+                { id: 'age-confirm', container: 'age-checkbox', message: 'You must confirm you are 18 or older' },
+                { id: 'display-consent', container: 'display-checkbox', message: 'You must consent to public display' },
+                { id: 'privacy-accept', container: 'privacy-checkbox', message: 'You must accept the Privacy Policy' }
+            ];
+            
+            let allValid = true;
+            
+            requiredCheckboxes.forEach(checkbox => {
+                const input = document.getElementById(checkbox.id);
+                const container = document.getElementById(checkbox.container);
+                
+                if (!input.checked) {
+                    container.classList.add('required');
+                    allValid = false;
+                } else {
+                    container.classList.remove('required');
+                }
+            });
+            
+            if (!allValid) {
+                showError('form-error', 'Please complete all required checkboxes');
+            }
+            
+            return allValid;
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            errorElement.setAttribute('aria-live', 'assertive');
+        }
+
+        function showSuccess(message) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            successElement.setAttribute('aria-live', 'polite');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
+        }
+
+        function clearErrors() {
+            const errorElements = document.querySelectorAll('.error');
+            errorElements.forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            const requiredElements = document.querySelectorAll('.required');
+            requiredElements.forEach(el => {
+                el.classList.remove('required');
+            });
+            
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        // Real-time validation for name field
+        document.getElementById('name').addEventListener('input', function() {
+            if (this.value.length > 30) {
+                showError('name-error', 'Name must be 30 characters or less');
+            } else {
+                document.getElementById('name-error').style.display = 'none';
+            }
+        });
+            // Privacy Policy Modal Logic (init after DOM ready)
+        document.addEventListener('DOMContentLoaded', () => {
+            const privacyLink = document.getElementById('privacy-link');
+            const privacyModal = document.getElementById('privacy-modal');
+            const closePrivacy = document.getElementById('close-privacy');
+
+            if (!privacyLink || !privacyModal || !closePrivacy) return;
+
+            privacyLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                privacyModal.style.display = 'flex';
+                closePrivacy.focus();
+            });
+
+            closePrivacy.addEventListener('click', () => {
+                privacyModal.style.display = 'none';
+                privacyLink.focus();
+            });
+
+            // Close when clicking outside the modal content or pressing Esc
+            privacyModal.addEventListener('click', (e) => {
+                if (e.target === privacyModal) {
+                    privacyModal.style.display = 'none';
+                    privacyLink.focus();
+                }
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && privacyModal.style.display === 'flex') {
+                    privacyModal.style.display = 'none';
+                    privacyLink.focus();
+                }
+            });
+        });
+    </script>
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="privacy-title" aria-describedby="privacy-body">
+        <div class="modal-content">
+            <h2 id="privacy-title">Privacy Policy</h2>
+            <pre id="privacy-body" class="policy-text">
+# Privacy Policy
+
+**Effective Date: July 10, 2025**
+*(Last Updated: July 10, 2025 – amended to add affirmative click-wrap consent, class-action waiver, and forum-selection clause)*
+
+---
+
+## 1 · Introduction
+
+DB Taverns Co, doing business as **Maddy’s Tavern**, **Maddy’s Ole No. 6 Tavern**, and **Maddy’s AKA Maddy’s** (collectively, “**Company,**” “**we,**” or “**us**”), operates a publicly accessible, Cloudflare-hosted web application that allows users (collectively, “**you**” or “**User**”) to upload images that are immediately displayed on an OptiSign digital board and on a public web page.  We are headquartered at **228 S 1st St, Divernon, Illinois 62530, USA**.
+
+This Privacy Policy describes how we collect, use, disclose, and safeguard information when you use our Service.  **PLEASE READ THIS POLICY CAREFULLY.  BY AFFIRMATIVELY CLICKING THE “I AGREE” BUTTON OR CHECKBOX PRESENTED AT THE POINT OF UPLOAD (THE “CLICKWRAP”), YOU:**
+
+1. **AFFIRM THAT YOU ARE AT LEAST 18 YEARS OF AGE;**
+2. **HAVE READ, UNDERSTOOD, AND AGREED TO THIS PRIVACY POLICY;** and
+3. **CONSENT TO THE PUBLIC DISPLAY OF ANY CONTENT YOU SUBMIT.**
+   If you do not agree, do not click “I Agree” and do not use the Service.
+
+---
+
+## 2 · Information We Collect
+
+We collect only the information that you provide or that is incidentally generated by your use of the Service:
+
+| Category               | Description                                                                                                | Purpose                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **User Content**       | Any images, text, or other materials you voluntarily upload.                                               | To publicly display the content as requested. |
+| **Technical Data**     | IP address, browser type, device identifiers, and timestamps automatically captured in server or CDN logs. | Site operation, security, fraud prevention.   |
+| **Clickwrap Metadata** | Timestamp, IP, and a cryptographic hash of your consent action.                                            | To prove affirmative consent and compliance.  |
+
+We **do not** require account registration, do not use analytics, and do not monetize or sell personal data.
+
+---
+
+## 3 · Affirmative Click-Wrap Consent ("I Agree")
+
+Before any upload is accepted, you must check a box labeled **“I am 18 or older and agree to the Privacy Policy and Terms of Use.”**  A second independent checkbox explicitly states **“I understand my image will be displayed publicly online and on the OptiSign board.”**  Both checkboxes must be selected before the **Submit** button is enabled.
+
+A SHA-256 hash of the consent payload (checkbox states, policy version number, timestamp, and requesting IP) is logged to tamper-evident storage for evidentiary purposes.
+
+If you later dispute consent, this log entry will serve as prima facie proof that you assented via a standard click-wrap mechanism recognized by Illinois and federal courts.
+
+---
+
+## 4 · How We Use Information
+
+1. **Service Delivery & Public Display** – Display User Content publicly, both online and on-premise screens.
+2. **Security & Site Integrity** – Detect abuse (e.g., spam, malware, or harassing content).
+3. **Legal Compliance** – Respond to lawful requests, court orders, or subpoenas.
+4. **Record-Keeping of Consent** – Retain click-wrap logs to demonstrate valid consent.
+
+We use no information for marketing, profiling, or targeted advertising.
+
+---
+
+## 5 · Cookies & Tracking
+
+We do **not** employ analytics, advertising beacons, or fingerprinting scripts.  Our only cookies are **strictly necessary** Cloudflare security cookies (e.g., `__cf_bm`) that expire within 24 hours and do not track you across sites.
+
+---
+
+## 6 · Third-Party Service Providers
+
+We rely on the following processors solely for hosting and security:
+
+* **Cloudflare, Inc.** – CDN, DDoS mitigation, TLS termination.
+* **GitHub Pages** – Static asset hosting and CI pipeline.
+  These vendors process IP addresses and request metadata under their own privacy policies and are contractually prohibited from using data for their own purposes.
+
+No other third-party sharing occurs, except as legally required.
+
+---
+
+## 7 · Data Retention & Deletion
+
+| Data Type                             | Retention Period                                                                     |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| **User Content**                      | Until you request deletion, or automatically purged after 7 days per rotation rules. |
+| **Technical Logs / Clickwrap Hashes** | 30 days (security) unless extended for an investigation.                             |
+| **Support Emails**                    | While the ticket is open + 1 year.                                                   |
+
+Deletion requests may be sent to privacy@dbtaverns.com.
+
+---
+
+## 8 · Your Rights
+
+Under Illinois law and other applicable statutes (e.g., CCPA for CA residents, GDPR for EU visitors), you may request access, correction, deletion, or export of any personal data we hold.  Contact us using the information in Section 12.
+
+---
+
+## 9 · Children’s Privacy (18+ Only)
+
+We do not knowingly allow anyone under 18 to use the Service.  If we discover a minor has provided data, we will delete it immediately.
+
+---
+
+## 10 · Security
+
+We implement TLS 1.3 encryption in transit, least-privilege IAM on hosting, and regular vulnerability scans.  No method is 100% secure; you upload at your own risk.
+
+---
+
+## 11 · Governing Law & Dispute Resolution
+
+### 11.1 Forum Selection
+
+All claims **arising out of or relating to** this Privacy Policy or the Service shall be **instituted exclusively** in the state courts of **Sangamon County, Illinois** or, if federal jurisdiction exists, the **U.S. District Court for the Central District of Illinois**.  You and the Company **consent to personal jurisdiction** in these courts and waive any objection based on inconvenient forum.
+
+### 11.2 Class Action Waiver
+
+To the fullest extent permitted by law, **you agree to bring claims only in your individual capacity, and not as a plaintiff or class member in any purported class, collective, consolidated, or representative proceeding.**  **CLASS ARBITRATION AND CLASS ACTIONS ARE NOT PERMITTED.**  The court may not consolidate individual claims or preside over any form of representative proceeding.
+
+If a court of competent jurisdiction finds the class action waiver unenforceable, the entire Section 11 shall be null and void.
+
+---
+
+## 12 · Contact Us
+
+**DB Taverns Co**
+228 S 1st St
+Divernon, IL 62530 USA
+
+---
+
+## 13 · Changes to This Policy
+
+We may amend this Privacy Policy from time to time.  Updated versions will be posted with a revised “Last Updated” date.  **Material changes** will require re-affirmation via click-wrap.
+
+---
+
+*© 2025 DB Taverns Co. All rights reserved.*
+            </pre>
+            <button id="close-privacy" class="submit-btn" style="margin-top:16px; width:auto;">Close</button>
+        </div>
+    </div>
+
+</body>
+</html>

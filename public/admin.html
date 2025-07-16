@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiSign Admin Panel</title>
+    <style>
+        .admin-table{
+            width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;
+        }
+        .admin-table th,.admin-table td{border:1px solid #e1e5e9;padding:8px;text-align:left;}
+        .admin-table th{background:#f8f9fa;font-weight:600;}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px;
+        }
+
+        .login-container {
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .admin-container {
+            display: none;
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            margin-left: 10px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .admin-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .admin-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .admin-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .error {
+            color: #dc3545;
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 4px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            color: #155724;
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 4px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .stat-card p {
+            opacity: 0.9;
+        }
+
+.action-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            flex-wrap: nowrap;
+        }
+
+        /* Square buttons inside action bar */
+        .action-bar .btn {
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: normal;
+        }
+
+        @media (max-width: 600px) {
+            .action-bar {
+                overflow-x: auto;
+            }
+        }
+
+        /* keep regular button full width outside action bar */
+        .btn:not(.action-bar .btn) {
+            width: 100%;
+        }
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: auto; /* enable scrollbars */
+            max-height: 500px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .admin-table {
+            width: 100%;
+            table-layout: fixed; /* respect explicit column widths */
+        }
+
+        /* narrow filename column */
+        .filename-col {
+            max-width: 200px !important;
+            width: 200px !important;
+        }
+        .filename-col div {
+            max-width: 200px !important;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .admin-table th,
+            border-collapse: collapse;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            
+            border: 1px solid #e1e5e9;
+            padding: 12px 8px;
+            text-align: left;
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+            padding: 12px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .admin-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .admin-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .image-preview {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-queue {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-default {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .status-expired {
+            background: #fce4ec;
+            color: #c2185b;
+        }
+
+        .rotation-input {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        /* display time seconds input */
+        .duration-input {
+            width: 60px;
+            padding: 4px 6px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .table-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+
+        .table-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .table-btn-primary {
+            background: #007bff;
+            color: white;
+        }
+    /* OptiSign Tavern Theme */
+    :root {
+        --color-primary: #1E293B; /* deep navy */
+        --color-accent: #F59E0B; /* vibrant amber */
+        --color-success: #10B981; /* emerald green */
+        --color-danger: #EF4444; /* warm red */
+        --color-bg: #F9FAFB; /* light gray */
+        --color-text: #1F2937; /* dark slate */
+    }
+
+    body {
+        background: var(--color-bg);
+        color: var(--color-text);
+    }
+
+    .header h1,
+    .header p {
+        color: var(--color-text);
+    }
+
+    .btn {
+        background: var(--color-primary);
+        color: #fff;
+    }
+
+    .btn:hover {
+        filter: brightness(1.1);
+    }
+
+    .btn:active {
+        filter: brightness(0.9);
+    }
+
+    .btn-secondary {
+        background: var(--color-accent);
+        color: #fff;
+    }
+
+    .btn-success {
+        background: var(--color-success);
+        color: #fff;
+    }
+
+    .btn-danger,
+    .logout-btn,
+    .table-btn-danger {
+        background: var(--color-danger);
+        color: #fff;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+        color: #fff;
+    }
+
+    .table-btn-primary {
+        background: var(--color-accent);
+        color: #fff;
+    }
+
+    .status-queue {
+        background: #E2E8F0;
+        color: var(--color-primary);
+    }
+
+    .status-default {
+        background: #D1FAE5;
+        color: var(--color-success);
+    }
+
+    .status-expired {
+        background: #FEE2E2;
+        color: var(--color-danger);
+    }
+
+    .admin-card {
+        background: #fff;
+    }
+
+    .action-bar,
+    .table-container {
+        background: #fff;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="loginContainer" class="login-container">
+            <div class="header">
+                <h1>🎯 OptiSign</h1>
+                <p>Admin Panel Access</p>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="email" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Sign In</button>
+                <div id="loginError" class="error" style="display: none;"></div>
+            </form>
+        </div>
+
+        <!-- Admin Panel -->
+        <div id="adminContainer" class="admin-container">
+            <div id="dashboard">
+                <div class="header">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h1>🎯 OptiSign Admin Panel</h1>
+                            <p>Queue: <span id="queueCount">-</span> | Defaults: <span id="defaultCount">-</span> | Storage: <span id="totalSize">-</span></p>
+                        </div>
+                        <button class="logout-btn" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <button class="btn" onclick="refreshData()">🔄 Refresh</button>
+                    <button id="uploadDefaultBtn" class="btn btn-success" onclick="document.getElementById('defaultUpload').click()">📤 Upload Default</button>
+                    <button class="btn btn-danger" onclick="clearQueue()">🗑️ Clear Queue</button>
+                    <button class="btn btn-secondary" onclick="purgeExpired()">🧹 Purge Expired</button>
+                    <button class="btn btn-secondary" onclick="resizeAll()">📏 Resize&nbsp;All</button>
+                    <button class="btn btn-danger" onclick="resetSystem()">⚠️ Reset System</button>
+                    <input type="file" id="defaultUpload" accept="image/*" multiple style="display: none;">
+                    
+                    
+                </div>
+
+                <!-- Main Data Table -->
+                <div class="table-container">
+                    <table class="admin-table" id="mainTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Preview</th>
+                                <th style="width: 200px;">Filename</th>
+                                <th style="width: 70px;">Type</th>
+                                <th style="width: 80px;">Size</th>
+                                <th style="width: 120px;">Uploaded</th>
+                                <th style="width: 110px;">Rotation (hrs)</th>
+                                <th style="width: 110px;">Display Time (s)</th>
+                                <th style="width: 80px;">Status</th>
+                                <th style="width: 70px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 40px; color: #666;">
+                                    Loading data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            <div id="adminMessage" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // Admin credentials (in production, this should be handled server-side)
+        const ADMIN_CREDENTIALS = {
+            username: 'dave62530@gmail.com',
+            password: 'Noaheliamelia1!2@'
+        };
+
+        // Check if already logged in
+        if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+            showAdminPanel();
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                showAdminPanel();
+                refreshStats();
+            } else {
+                showError('Invalid username or password');
+            }
+        });
+
+        function showAdminPanel() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('adminContainer').style.display = 'block';
+            refreshData();
+        }
+
+        // Main data refresh function for the table
+        async function refreshData() {
+            await refreshStats();
+            await loadAllImages();
+        }
+
+        // Load all images into the main table
+        async function loadAllImages() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">Loading...</td></tr>';
+            
+            try {
+                const [queueRes, defaultsRes] = await Promise.all([
+                    fetch('/admin/queue'),
+                    fetch('/admin/defaults')
+                ]);
+                
+                const queueJson = queueRes.ok ? await queueRes.json() : [];
+                const defaultsJson = defaultsRes.ok ? await defaultsRes.json() : [];
+
+                // Support both array or {images: []} shapes
+                const queueImages = Array.isArray(queueJson) ? queueJson : (queueJson.images || []);
+                const defaultImages = Array.isArray(defaultsJson) ? defaultsJson : (defaultsJson.images || []);
+                
+                // Merge lists and deduplicate by key
+                const allImages = [];
+                
+                queueImages.forEach(img => allImages.push({
+                        ...img,
+                        type: img.isDefault ? 'default' : 'queue',
+                        // preserve displayMode coming from backend (rotation / once)
+                        displayMode: img.displayMode || (img.isDefault ? 'default' : img.displayMode)
+                    }));
+                defaultImages.forEach(img => allImages.push({
+                        ...img,
+                        type: 'default',
+                        displayMode: 'default'
+                    }));
+                // Deduplicate by key so defaults added from queue endpoint don't double up
+                const uniqueMap = new Map();
+                for (const img of allImages) {
+                    if (!uniqueMap.has(img.key)) {
+                        uniqueMap.set(img.key, img);
+                    }
+                }
+                const dedupedImages = Array.from(uniqueMap.values());
+                
+                if (dedupedImages.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #666;">No images found</td></tr>';
+                    return;
+                }
+                
+                // Sort by upload date (newest first)
+                dedupedImages.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
+                
+                // Populate table
+                tableBody.innerHTML = dedupedImages.map(img => createTableRow(img)).join('');
+                
+            } catch (err) {
+                console.error('Failed to load images:', err);
+                tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: #dc3545;">Failed to load data</td></tr>';
+            }
+        }
+        
+        // Create table row for an image
+        function createTableRow(image) {
+            const isExpired = image.expiresAt && new Date(image.expiresAt) < new Date();
+            const status = isExpired ? 'expired' : image.type;
+            // removed original typeClass; will compute later
+            // Determine display mode label for Type column
+            let typeLabel;
+            const mode = image.displayMode || (image.type === 'default' ? 'default' : 'rotation');
+            switch (mode) {
+                case 'once':
+                    typeLabel = 'Display Once';
+                    break;
+                case 'rotation':
+                    typeLabel = 'Rotation';
+                    break;
+                default:
+                    typeLabel = 'Default';
+            }
+            const typeBadgeClass = mode === 'default' ? 'status-default' : 'status-queue';
+
+            // Existing status column information (pending / shown / expired)
+            const statusLabel = isExpired ? 'Expired' : (image.type === 'default' ? 'Default' : (image.shown ? 'Shown' : 'Pending'));
+            const statusClass = isExpired ? 'status-expired' : (image.shown ? 'status-queue' : 'status-default');
+            const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+            
+            const rotationHours = image.rotationHours || 168;
+            const rawDate = image.uploadDate || image.uploaded || image.uploadedAt;
+            const uploadDate = rawDate ? new Date(rawDate).toLocaleString() : '-';
+            
+            const keyEncoded = btoa(image.key || image.name);
+            
+            return `
+                <tr data-key="${image.key}" data-type="${image.type}">
+                    <td>
+                        <img src="${image.thumbnailUrl || image.url || image.imageUrl}" class="image-preview" alt="${image.name}" 
+                             onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xMiAxNkwyMCAyNEwyOCAxNlYxMkgxMlYxNloiIGZpbGw9IiNEREREREQiLz4KPC9zdmc+'">
+                    </td>
+                    <td class="filename-col">
+                        <div style="font-weight: 500;">${image.name}</div>
+                        <div style="font-size: 12px; color: #666;">${image.key || ''}</div>
+                    </td>
+                    <td><span class="status-badge ${typeBadgeClass}">${typeLabel}</span></td>
+                    <td>${formatBytes(image.size || 0)}</td>
+                    <td>${uploadDate}</td>
+                    <td>
+                        ${image.type === 'queue' ? 
+                            `<input type="number" class="rotation-input" value="${rotationHours}" 
+                                    min="-1" id="rh-${keyEncoded}" 
+                                    onchange="updateRotation('${image.key}', this.value)">` : 
+                            '-'
+                        }
+                    </td>
+                    <td>
+                        <input type="number" class="duration-input" value="${image.durationSec || 10}" 
+                                        min="0" id="dt-${keyEncoded}" 
+                                        onchange="updateDuration('${image.key}', this.value, '${image.type}')">
+                    </td>
+                    <td>
+                        <button class="table-btn table-btn-danger" onclick="deleteImage('${image.key}', '${image.type}')" 
+                                title="Delete image">🗑</button>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminLoggedIn');
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('adminContainer').style.display = 'none';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('loginError');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showMessage(message, type = 'success') {
+            const messageDiv = document.getElementById('adminMessage');
+            messageDiv.innerHTML = `<div class="${type}">${message}</div>`;
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+
+        // Update rotation hours for a specific image
+        async function updateRotation(key, value) {
+            const val = parseInt(value);
+            if (isNaN(val) || (val !== -1 && val < 1)) {
+                showMessage('Invalid rotation hours', 'error');
+                return;
+            }
+            try {
+                const res = await fetch('/admin/update-queue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, rotationHours: val })
+                });
+                if (res.ok) {
+                    showMessage('Rotation updated');
+                } else {
+                    const err = await res.json();
+                    showMessage(err.error || 'Update failed', 'error');
+                }
+            } catch (err) {
+                console.error('update rotation error', err);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Update display duration (seconds) for a specific image
+        async function updateDuration(key, value, type = 'queue') {
+            const val = parseInt(value);
+            if (isNaN(val) || val < 0) {
+                showMessage('Invalid display time', 'error');
+                return;
+            }
+            try {
+                const endpoint = type === 'default' ? '/admin/update-default' : '/admin/update-queue';
+                const res = await fetch(endpoint, {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ key, durationSec: val })
+                });
+                if (res.ok) {
+                    showMessage('Display time updated');
+                } else {
+                    const err = await res.json();
+                    showMessage(err.error || 'Update failed', 'error');
+                }
+            } catch (err) {
+                console.error('update duration error', err);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Rotation Limit Functions
+        async function loadRotationLimit() {
+            try {
+                const res = await fetch('/admin/rotation-limit');
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('rotationLimitInput').value = data.limit;
+                    document.getElementById('rotationLimitHelp').textContent = `Current limit: ${data.limit === -1 ? 'Unlimited' : data.limit + ' hours'}`;
+                }
+            } catch (err) {
+                console.error('Failed to load rotation limit', err);
+            }
+        }
+
+        async function saveRotationLimit() {
+            const value = parseInt(document.getElementById('rotationLimitInput').value);
+            if (isNaN(value) || (value !== -1 && value < 1)) {
+                showMessage('Please enter -1 or a number >=1', 'error');
+                return;
+            }
+            try {
+                const res = await fetch('/admin/rotation-limit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ limit: value })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showMessage('Rotation limit updated');
+                } else {
+                    const err = await res.json();
+                    showMessage(err.error || 'Failed to update', 'error');
+                }
+            } catch (error) {
+                console.error('Save rotation limit error', error);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // Admin Functions
+        async function refreshStats() {
+            try {
+                const response = await fetch('/admin/stats');
+                const data = await response.json();
+                
+                document.getElementById('queueCount').textContent = data.queueCount || '0';
+                document.getElementById('defaultCount').textContent = data.defaultCount || '0';
+                document.getElementById('totalSize').textContent = formatBytes(data.totalSize || 0);
+            } catch (error) {
+                console.error('Failed to refresh stats:', error);
+                showMessage('Failed to refresh stats', 'error');
+            }
+        }
+
+
+        async function deleteImage(key, type) {
+            if (!confirm('Are you sure you want to delete this image?')) return;
+
+            try {
+                const response = await fetch(`/admin/delete/${type}/${encodeURIComponent(key)}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showMessage('Image deleted successfully');
+                    refreshData();
+                } else {
+                    showMessage('Failed to delete image', 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting image:', error);
+                showMessage('Error deleting image', 'error');
+            }
+        }
+
+        async function clearQueue() {
+            if (!confirm('Are you sure you want to clear the entire queue? This cannot be undone.')) return;
+
+            try {
+                const response = await fetch('/admin/clear-queue', { method: 'POST' });
+                if (response.ok) {
+                    showMessage('Queue cleared successfully');
+                    refreshData();
+                } else {
+                    showMessage('Failed to clear queue', 'error');
+                }
+            } catch (error) {
+                console.error('Error clearing queue:', error);
+                showMessage('Error clearing queue', 'error');
+            }
+        }
+
+        async function purgeExpired() {
+            try {
+                const response = await fetch('/admin/purge', { method: 'POST' });
+                if (response.ok) {
+                    showMessage('Expired images purged successfully');
+                    refreshData();
+                } else {
+                    showMessage('Failed to purge expired images', 'error');
+                }
+            } catch (error) {
+                console.error('Error purging expired images:', error);
+                showMessage('Error purging expired images', 'error');
+            }
+        }
+
+        async function resetSystem() {
+            if (!confirm('Are you sure you want to reset the entire system? This will delete ALL images and data. This cannot be undone.')) return;
+            if (!confirm('This is your final warning. ALL DATA WILL BE LOST. Continue?')) return;
+
+            try {
+                const response = await fetch('/reset', { method: 'POST' });
+                if (response.ok) {
+                    showMessage('System reset successfully');
+                    refreshData();
+                } else {
+                    showMessage('Failed to reset system', 'error');
+                }
+            } catch (error) {
+                console.error('Error resetting system:', error);
+                showMessage('Error resetting system', 'error');
+            }
+        }
+
+        // Resize all images in storage
+        async function resizeAll() {
+            if (!confirm('This will re-encode all stored images to WebP ≤700KB. Continue?')) return;
+            try {
+                const res = await fetch('/admin/resize-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: ADMIN_CREDENTIALS.password })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    showMessage(`Resize complete. Processed ${data.processed}, skipped ${data.skipped}`);
+                    refreshData();
+                } else {
+                    const err = await res.json();
+                    showMessage(err.error || 'Resize failed', 'error');
+                }
+            } catch (err) {
+                console.error('Resize-all error', err);
+                showMessage('Network error', 'error');
+            }
+        }
+
+        // File upload handler
+        document.getElementById('defaultUpload').addEventListener('change', async function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
+
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) {
+                    showMessage(`${file.name} is not an image file`, 'error');
+                    continue;
+                }
+
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('type', 'default');
+
+                try {
+                    const response = await fetch('/admin/upload-default', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        showMessage(`${file.name} uploaded successfully`);
+                    } else {
+                        showMessage(`Failed to upload ${file.name}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                    showMessage(`Error uploading ${file.name}`, 'error');
+                }
+            }
+
+            refreshData();
+            e.target.value = ''; // Reset file input
+        });
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+            // Auto-scroll to top when Upload Default clicked
+        const uploadDefaultBtn = document.getElementById('uploadDefaultBtn');
+        if (uploadDefaultBtn) {
+            uploadDefaultBtn.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
+    </script>
+</body>
+</html>
