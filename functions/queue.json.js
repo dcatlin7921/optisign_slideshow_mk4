@@ -113,10 +113,16 @@ async function getDefaultImages(env) {
 
 async function getImageUrl(key, env) {
   try {
-    // For R2, we need to construct a public URL or use presigned URLs
-    // This is a simplified version - in production you might want presigned URLs
-    const accountHash = env.CLOUDFLARE_ACCOUNT_HASH || 'demo';
-    return `https://pub-${accountHash}.r2.dev/${key}`;
+    // Ensure R2_PUBLIC_URL is set in wrangler.toml
+    if (!env.R2_PUBLIC_URL || env.R2_PUBLIC_URL.includes('<YOUR_ACCOUNT_HASH>')) {
+        console.error('R2_PUBLIC_URL is not configured in wrangler.toml');
+        return '/placeholder.jpg'; // Fallback to prevent broken image icons
+    }
+    
+    // Remove trailing slash if present, then append the key
+    const baseUrl = env.R2_PUBLIC_URL.endsWith('/') ? env.R2_PUBLIC_URL.slice(0, -1) : env.R2_PUBLIC_URL;
+    return `${baseUrl}/${key}`;
+
   } catch (error) {
     console.error('Error getting image URL:', error);
     return '/placeholder.jpg'; // Fallback

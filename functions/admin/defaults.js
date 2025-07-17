@@ -34,7 +34,8 @@ export async function onRequestGet(context) {
           name: getImageName(object.key),
           size: object.size,
           uploaded: object.uploaded,
-          durationSec
+          durationSec,
+          url: await getImageUrl(object.key, env)
         });
       }
     }
@@ -78,4 +79,14 @@ function isImageFile(filename) {
 
 function getImageName(filename) {
   return filename.split('/').pop().split('.')[0];
+}
+
+// Build public URL for R2 object using account hash binding
+async function getImageUrl(key, env) {
+  try {
+    const accountHash = env.CLOUDFLARE_ACCOUNT_HASH || 'demo';
+    return `https://pub-${accountHash}.r2.dev/${key}`;
+  } catch {
+    return '/placeholder.jpg';
+  }
 }

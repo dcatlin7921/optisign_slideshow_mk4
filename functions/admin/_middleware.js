@@ -12,9 +12,9 @@ export async function onRequest(context) {
     });
   }
 
-  // Skip auth for the login route
+  // Skip auth for public admin panel HTML so it can be fetched without a token
   const url = new URL(request.url);
-  if (url.pathname === '/admin/login') {
+  if (url.pathname === '/admin' || url.pathname === '/admin/' || url.pathname === '/admin/login') {
     return next();
   }
 

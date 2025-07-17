@@ -305,9 +305,17 @@
             background: #f8f9fa;
         }
 
+        /* Ensure first column is wide enough for larger thumbnails */
+        .admin-table th:first-child,
+        .admin-table td:first-child {
+            width: 100px !important;
+            min-width: 100px !important;
+            max-width: 100px !important;
+        }
+
         .image-preview {
-            width: 40px;
-            height: 40px;
+            width: 80px;
+            height: 80px;
             object-fit: cover;
             border-radius: 4px;
             border: 1px solid #ddd;

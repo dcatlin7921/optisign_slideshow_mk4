@@ -8,6 +8,7 @@ pages_build_output_dir = "public"
 [vars]
 QUEUE_CAP = "20"
 UA_CHECK_ENABLED = "false"
+R2_PUBLIC_URL = "https://pub-658052c671264e51b90bc14143654588.r2.dev"
 # (Optional) default rotation limit, etc.
 
 
