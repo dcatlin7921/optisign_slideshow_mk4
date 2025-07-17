@@ -7,7 +7,13 @@ export const onRequest = async (context) => {
   const url = new URL(request.url);
   
   // Get the expected slug from environment
-  const allowedSlug = 'a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5t6u7v8w9x0y1z2a3b4c5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0c1d2e3f4g5h6i7j8';
+  const allowedSlug = env.UNLISTED_SLUG;
+  if (!allowedSlug) {
+    return new Response(JSON.stringify({ error: 'UNLISTED_SLUG secret is missing' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   
   // Check if accessing root slideshow (redirect to slug)
   if (url.pathname === '/slideshow' || url.pathname === '/slideshow/') {
@@ -24,8 +30,8 @@ export const onRequest = async (context) => {
       }
     }
     
-    // Serve the slideshow HTML
-    return env.ASSETS.fetch(new URL('/slideshow.html', request.url));
+    // Redirect to the static slideshow.html file
+    return Response.redirect(`${url.origin}/slideshow.html`, 302);
   }
   
   // Invalid slug - 404
