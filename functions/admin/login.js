@@ -17,11 +17,33 @@ export async function onRequestPost(context) {
     const body = await request.json();
     const { username, password } = body || {};
 
-    // Support two auth modes: user+pass or single token (legacy)
-    const valid = (env.ADMIN_USERNAME && env.ADMIN_PASSWORD && username === env.ADMIN_USERNAME && password === env.ADMIN_PASSWORD) ||
-                  (env.ADMIN_PASSWORD && password === env.ADMIN_PASSWORD);
+    // Debug: Log received username (never log password)
+    console.log('[LOGIN] Attempt with username:', username);
+
+    // Determine which mode is being attempted
+    let authMode = null;
+    if (env.ADMIN_USERNAME && env.ADMIN_PASSWORD && username === env.ADMIN_USERNAME && password === env.ADMIN_PASSWORD) {
+      authMode = 'user+pass';
+    } else if (env.ADMIN_PASSWORD && password === env.ADMIN_PASSWORD) {
+      authMode = 'token-only';
+    }
+
+    const valid = !!authMode;
+    console.log('[LOGIN] Auth mode:', authMode || 'invalid');
 
     if (!valid) {
+      // Log failure reason for debugging
+      if (!env.ADMIN_PASSWORD) {
+        console.warn('[LOGIN] ADMIN_PASSWORD not set in env');
+      } else if (env.ADMIN_USERNAME && env.ADMIN_PASSWORD) {
+        if (username !== env.ADMIN_USERNAME) {
+          console.warn('[LOGIN] Invalid username:', username);
+        } else {
+          console.warn('[LOGIN] Invalid password for user:', username);
+        }
+      } else {
+        console.warn('[LOGIN] Invalid password (token-only mode)');
+      }
       return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -30,6 +52,7 @@ export async function onRequestPost(context) {
 
     // Return the token defined in env. If not set, generate a short-lived random one (not persisted)
     const token = env.ADMIN_TOKEN || crypto.randomUUID();
+    console.log('[LOGIN] Success for username:', username, 'mode:', authMode);
 
     return new Response(JSON.stringify({ token }), {
       headers: { 'Content-Type': 'application/json', ...corsHeaders },
