@@ -441,7 +441,15 @@
                     slideInfo.className = 'slide-info';
 
                     const title = document.createElement('h2');
-                    title.textContent = `Photo by ${slide.name}`;
+                    let titleText = `Photo by ${slide.name}`;
+                    if (slide.expiresAt) {
+                        const msLeft = new Date(slide.expiresAt).getTime() - Date.now();
+                        if (msLeft > 0) {
+                            const hoursLeft = Math.ceil(msLeft / 3600000); // round up to whole hours
+                            titleText += ` \u2013 ${hoursLeft}h left`;
+                        }
+                    }
+                    title.textContent = titleText;
                     slideInfo.appendChild(title);
                     
                     slideElement.appendChild(slideInfo);
@@ -450,7 +458,8 @@
                 this.container.appendChild(slideElement);
             
                 // Update status and screen reader
-                const slideInfoText = `Slide ${index + 1} of ${this.slides.length}: Photo by ${slide.name}`;
+                const hoursInfo = (slide.expiresAt) ? (() => { const msLeft = new Date(slide.expiresAt).getTime() - Date.now(); if (msLeft > 0) { return ` – ${Math.ceil(msLeft / 3600000)}h left`; } return ''; })() : '';
+                 const slideInfoText = `Slide ${index + 1} of ${this.slides.length}: Photo by ${slide.name}${hoursInfo}`;
                 this.updateStatus(slideInfoText);
                 
                 // Set up progress bar and timer

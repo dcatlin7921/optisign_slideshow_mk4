@@ -13,61 +13,76 @@ export async function onRequestGet(context) {
   };
 
   try {
-    // Build playlist: guest images first, then default images
+    // Build playlist: display-once images ➜ rotation images (shuffled) ➜ default images
     const playlist = [];
-    
-    // Get guest images from KV queue
+
+    // Retrieve guest images stored in KV under "queue:*"
     const queueList = await env.PHOTO_QUEUE.list({ prefix: 'queue:' });
     const now = Date.now();
-    
-    // Process guest images
-    const guestImages = [];
+
+    // Temporary buckets
+    const onceImages = [];
+    const rotationImages = [];
+
     for (const item of queueList.keys) {
       const metadata = JSON.parse(await env.PHOTO_QUEUE.get(item.name));
-      
+
       // Skip expired images
       if (metadata.expires && metadata.expires < now) {
         continue;
       }
-      
-      // Skip "once" images that have been shown
+
+      // Skip display-once images that have already been shown
       if (metadata.displayMode === 'once' && metadata.shown) {
         continue;
       }
-      
-      // Mark "once" images as shown for next time
+
+      // Mark display-once images as shown so they are skipped on next playlist build
       if (metadata.displayMode === 'once' && !metadata.shown) {
         metadata.shown = true;
         await env.PHOTO_QUEUE.put(item.name, JSON.stringify(metadata));
       }
-      
-      guestImages.push({
+
+      const img = {
         url: await getImageUrl(metadata.key, env),
         name: metadata.name,
         durationSec: metadata.durationSec || 10,
         rotationHours: metadata.rotationHours ?? null,
         once: metadata.displayMode === 'once',
-        type: 'guest'
-      });
-    }
-    
-    // Sort guest images by upload time (FIFO)
-    guestImages.sort((a, b) => a.uploaded - b.uploaded);
-    playlist.push(...guestImages);
-    
-    // Add default images if queue has space
-    const queueCap = parseInt(env.QUEUE_CAP) || 20;
-    if (queueCap === 0 || playlist.length < queueCap) {
-      let defaultImages = await getDefaultImages(env);
-      // Shuffle default images
-      for (let i = defaultImages.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [defaultImages[i], defaultImages[j]] = [defaultImages[j], defaultImages[i]];
+        type: 'guest',
+        uploaded: metadata.uploaded ?? metadata.timestamp ?? now // used for ordering
+      };
+
+      if (metadata.displayMode === 'once') {
+        onceImages.push(img);
+      } else {
+        // treat any non-once guest image as rotation image
+        rotationImages.push(img);
       }
-      // Limit to 20
-      defaultImages = defaultImages.slice(0, 20);
-      playlist.push(...defaultImages);
     }
+
+    // Order display-once images FIFO (oldest first)
+    onceImages.sort((a, b) => a.uploaded - b.uploaded);
+
+    // Shuffle rotationImages
+    for (let i = rotationImages.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [rotationImages[i], rotationImages[j]] = [rotationImages[j], rotationImages[i]];
+    }
+
+    playlist.push(...onceImages, ...rotationImages);
+
+    // Append up to 20 random default images
+    let defaultImages = await getDefaultImages(env);
+
+    // Shuffle defaultImages (Fisher-Yates)
+    for (let i = defaultImages.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [defaultImages[i], defaultImages[j]] = [defaultImages[j], defaultImages[i]];
+    }
+
+    defaultImages = defaultImages.slice(0, 20);
+    playlist.push(...defaultImages);
     
     return Response.json(playlist, { headers: corsHeaders });
     

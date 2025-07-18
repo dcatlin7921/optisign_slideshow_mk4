@@ -501,7 +501,7 @@
 
                 <!-- Action Bar -->
                 <div class="action-bar">
-                    <a href="/slideshow.html" target="_blank" class="btn btn-secondary" title="Open Slideshow" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:1.5em;">🎬</span>&nbsp;Slideshow</a>
+                    <a href="/slideshow/sunflower/" target="_blank" class="btn btn-secondary" title="Open Sunflower Slideshow" style="display:flex;align-items:center;justify-content:center;"><span style="font-size:1.5em;">🌻</span>&nbsp;Sunflower&nbsp;Slideshow</a>
                     <button class="btn" onclick="refreshData()">🔄 Refresh</button>
                     <button id="uploadDefaultBtn" class="btn btn-success" onclick="document.getElementById('defaultUpload').click()">📤 Upload Default</button>
                     <button class="btn btn-danger" onclick="clearQueue()">🗑️ Clear Queue</button>
@@ -694,11 +694,18 @@
                         <div style="font-weight: 500;">${image.name}</div>
                         <div style="font-size: 12px; color: #666;">${image.key || ''}</div>
                     </td>
-                    <td><span class="status-badge ${typeBadgeClass}">${typeLabel}</span></td>
+                    <td>
+                ${mode==='once' ?
+                    `<span class="status-badge status-queue">Display Once</span>` :
+                    `<select class="type-select" onchange="changeImageType('${image.key}', this.value, '${mode}')">
+                        <option value="default" ${mode==='default'? 'selected' : ''}>Default</option>
+                        <option value="rotation" ${mode==='rotation'? 'selected' : ''}>Rotation</option>
+                    </select>`}
+            </td>
                     <td>${formatBytes(image.size || 0)}</td>
                     <td>${uploadDate}</td>
                     <td>
-                        ${image.type === 'queue' ? 
+                        ${image.type === 'queue' && mode!=='once' ? 
                             `<input type="number" class="rotation-input" value="${rotationHours}" 
                                     min="-1" id="rh-${keyEncoded}" 
                                     onchange="updateRotation('${image.key}', this.value)">` : 
@@ -706,7 +713,7 @@
                         }
                     </td>
                     <td>
-                        <input type="number" class="duration-input" value="${image.durationSec || 10}" 
+                        <input type="number" class="duration-input" ${mode==='once'?'disabled':''} value="${image.durationSec || 10}" 
                                         min="0" id="dt-${keyEncoded}" 
                                         onchange="updateDuration('${image.key}', this.value, '${image.type}')">
                     </td>
@@ -991,6 +998,28 @@
             uploadDefaultBtn.addEventListener('click', () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
+        }
+        // Change image type (default <-> rotation)
+        async function changeImageType(key, newType, currentType) {
+            if (newType === currentType) return;
+            try {
+                const res = await fetch('/admin/change-type', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, targetType: newType })
+                });
+                if (res.ok) {
+                    showMessage('Type updated');
+                    refreshData();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    showMessage(err.error || 'Update failed', 'error');
+                    refreshData();
+                }
+            } catch (err) {
+                console.error('Type update error', err);
+                showMessage('Network error', 'error');
+            }
         }
     </script>
 </body>

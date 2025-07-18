@@ -63,6 +63,13 @@ export async function onRequestPost(context) {
       }
     });
 
+    // Save default duration metadata (6 seconds) so playlist uses 6s instead of fallback 10s
+    try {
+      await env.PHOTO_DEFAULT_META.put(key, JSON.stringify({ durationSec: 6 }));
+    } catch (metaErr) {
+      console.error('Failed to store default image metadata', metaErr);
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Default image uploaded successfully',
