@@ -319,6 +319,9 @@
                     if (data && data.length > 0) {
                         const wasEmpty = this.slides.length === 0;
                         this.slides = data;
+                        // Preload the first couple of slides to ensure a smooth start.
+                        this.preloadSlide(0);
+                        this.preloadSlide(1);
                         console.log('Slides loaded successfully:', this.slides.length, 'slides');
                         this.updateStatus(`${this.slides.length} slides loaded`);
                         
@@ -350,6 +353,35 @@
             ensureValidSlideIndex() {
                 if (this.currentSlideIndex >= this.slides.length) {
                     this.currentSlideIndex = 0;
+                }
+            }
+
+            /**
+             * Preloads a single slide's image to prepare it for display.
+             * @param {number} index - The index of the slide to preload.
+             */
+            preloadSlide(index) {
+                if (!this.slides || this.slides.length === 0) return;
+
+                const slideIndex = index % this.slides.length;
+                const slide = this.slides[slideIndex];
+
+                // Check if slide exists and hasn't been preloaded yet
+                if (slide && !slide.preloaded) {
+                    const img = new Image();
+                    img.src = slide.url;
+                    img.onload = () => {
+                        this.slides[slideIndex].preloaded = true;
+                        console.log(`Preloaded image for slide ${slideIndex}: ${slide.url}`);
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to preload image for slide ${slideIndex}: ${slide.url}`);
+                    };
+
+                    // Use decode() for browsers that support it to fully process the image
+                    if (img.decode) {
+                        img.decode().catch(e => console.warn(`Image decode failed for ${slide.url}`, e));
+                    }
                 }
             }
 
@@ -415,6 +447,9 @@
                 
                 this.currentSlideIndex = index;
                 const slide = this.slides[index];
+
+                // Preload the slide 2 positions ahead to create a rolling buffer
+                this.preloadSlide(index + 2);
                 
                 // Clear existing slides
                 const existingSlides = this.container.querySelectorAll('.slide');
