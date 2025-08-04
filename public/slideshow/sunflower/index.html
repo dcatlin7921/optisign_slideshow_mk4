@@ -319,9 +319,7 @@
                     if (data && data.length > 0) {
                         const wasEmpty = this.slides.length === 0;
                         this.slides = data;
-                        // Preload the first couple of slides to ensure a smooth start.
-                        this.preloadSlide(0);
-                        this.preloadSlide(1);
+
                         console.log('Slides loaded successfully:', this.slides.length, 'slides');
                         this.updateStatus(`${this.slides.length} slides loaded`);
                         
@@ -448,8 +446,8 @@
                 this.currentSlideIndex = index;
                 const slide = this.slides[index];
 
-                // Preload the slide 2 positions ahead to create a rolling buffer
-                this.preloadSlide(index + 2);
+                // Preload the next slide to ensure it's ready
+                this.preloadSlide(index + 1);
                 
                 // Clear existing slides
                 const existingSlides = this.container.querySelectorAll('.slide');
