@@ -292,6 +292,11 @@
                 this.progressBar = document.getElementById('progress-bar');
                 this.screenReaderStatus = document.getElementById('screen-reader-status');
                 
+                // Preload controls: serialize preloads and keep at most one blob cached (LRU=1)
+                this.preloadQueue = Promise.resolve();
+                this.cachedObjectUrl = null; // object URL for the currently cached next slide
+                this.cachedIndex = null;     // index of the currently cached next slide
+
                 this.setupControls();
                 this.loadSlides();
             }
@@ -318,8 +323,19 @@
                     
                     if (data && data.length > 0) {
                         const wasEmpty = this.slides.length === 0;
+                        // Revoke any previously cached object URLs to avoid leaks before swapping playlists
+                        if (this.slides && this.slides.length) {
+                            try {
+                                this.slides.forEach(s => {
+                                    if (s && s.cachedUrl) {
+                                        URL.revokeObjectURL(s.cachedUrl);
+                                        delete s.cachedUrl;
+                                    }
+                                });
+                            } catch (_) { /* ignore */ }
+                        }
                         this.slides = data;
-
+                        
                         console.log('Slides loaded successfully:', this.slides.length, 'slides');
                         this.updateStatus(`${this.slides.length} slides loaded`);
                         
@@ -355,32 +371,44 @@
             }
 
             /**
-             * Preloads a single slide's image to prepare it for display.
-             * @param {number} index - The index of the slide to preload.
+             * Preload the given slide by fetching as Blob and caching a blob: URL.
+             * Serialized via this.preloadQueue (concurrency = 1). Keeps only one cached next-slide (LRU = 1).
+             * @param {number} index
              */
             preloadSlide(index) {
                 if (!this.slides || this.slides.length === 0) return;
-
                 const slideIndex = index % this.slides.length;
                 const slide = this.slides[slideIndex];
+                if (!slide) return;
 
-                // Check if slide exists and hasn't been preloaded yet
-                if (slide && !slide.preloaded) {
-                    const img = new Image();
-                    img.src = slide.url;
-                    img.onload = () => {
-                        this.slides[slideIndex].preloaded = true;
-                        console.log(`Preloaded image for slide ${slideIndex}: ${slide.url}`);
-                    };
-                    img.onerror = () => {
-                        console.error(`Failed to preload image for slide ${slideIndex}: ${slide.url}`);
-                    };
+                // If already has a cached blob URL, nothing to do
+                if (slide.cachedUrl) return;
 
-                    // Use decode() for browsers that support it to fully process the image
-                    if (img.decode) {
-                        img.decode().catch(e => console.warn(`Image decode failed for ${slide.url}`, e));
+                // Chain onto queue to ensure only one preload runs at a time
+                this.preloadQueue = this.preloadQueue.then(async () => {
+                    try {
+                        // Avoid double-fetch if another queued op already cached it
+                        if (slide.cachedUrl) return;
+
+                        const resp = await fetch(slide.url, { cache: 'force-cache' });
+                        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                        const blob = await resp.blob();
+                        const objUrl = URL.createObjectURL(blob);
+
+                        // Revoke previously cached object URL if it's not for the current or target slide
+                        if (this.cachedObjectUrl && this.cachedIndex !== this.currentSlideIndex && this.cachedIndex !== slideIndex) {
+                            try { URL.revokeObjectURL(this.cachedObjectUrl); } catch (_) { /* ignore */ }
+                        }
+
+                        slide.cachedUrl = objUrl;
+                        this.cachedObjectUrl = objUrl;
+                        this.cachedIndex = slideIndex;
+                        console.log(`Blob preloaded for slide ${slideIndex}`);
+                    } catch (err) {
+                        console.warn('Preload failed:', err);
                     }
-                }
+                });
+                return this.preloadQueue;
             }
 
             setupControls() {
@@ -443,11 +471,25 @@
             async displaySlide(index) {
                 if (!this.slides || this.slides.length === 0) return;
                 
+                // Determine previous slide index before changing current
+                const prevIndex = (this.slides && this.slides.length)
+                    ? (this.currentSlideIndex % this.slides.length + this.slides.length) % this.slides.length
+                    : null;
+
                 this.currentSlideIndex = index;
                 const slide = this.slides[index];
 
-                // Preload the next slide to ensure it's ready
-                this.preloadSlide(index + 1);
+                // Revoke previous slide's cached blob URL if it exists and is not the one kept as next-cache
+                if (prevIndex !== null && prevIndex !== this.cachedIndex) {
+                    const prevSlide = this.slides[prevIndex];
+                    if (prevSlide && prevSlide.cachedUrl) {
+                        try { URL.revokeObjectURL(prevSlide.cachedUrl); } catch (_) { /* ignore */ }
+                        delete prevSlide.cachedUrl;
+                    }
+                }
+
+                // Preload the next slide shortly after showing the current one (gentle on CPU)
+                setTimeout(() => this.preloadSlide(index + 1), 300);
                 
                 // Clear existing slides
                 const existingSlides = this.container.querySelectorAll('.slide');
@@ -460,7 +502,7 @@
                 
                 // Create image
                 const img = document.createElement('img');
-                img.src = slide.url;
+                img.src = slide.cachedUrl || slide.url;
                 img.alt = `Photo by ${slide.name}`;
                 img.loading = 'eager';
                 
