@@ -642,7 +642,11 @@
                 }
                 
                 // Sort by upload date (newest first)
-                dedupedImages.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
+                dedupedImages.sort((a, b) => {
+                    const dateA = new Date(a.uploadDate || a.uploaded || a.uploadedAt || 0);
+                    const dateB = new Date(b.uploadDate || b.uploaded || b.uploadedAt || 0);
+                    return dateB - dateA;
+                });
                 
                 // Populate table
                 tableBody.innerHTML = dedupedImages.map(img => createTableRow(img)).join('');
@@ -691,7 +695,7 @@
                              onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjVGNUY1Ii8+CjxwYXRoIGQ9Ik0xMiAxNkwyMCAyNEwyOCAxNlYxMkgxMlYxNloiIGZpbGw9IiNEREREREQiLz4KPC9zdmc+'">
                     </td>
                     <td class="filename-col">
-                        <div style="font-weight: 500;">${image.name}</div>
+                        <div style="font-weight: 500;"><a href="${image.url || image.imageUrl}" target="_blank" rel="noopener noreferrer">${image.name}</a></div>
                         <div style="font-size: 12px; color: #666;">${image.key || ''}</div>
                     </td>
                     <td>
